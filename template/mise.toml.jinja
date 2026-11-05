@@ -19,11 +19,11 @@ copier = { version = "latest", uvx = true } # template management
 # plexus-ms/primitives with provenance and bumped by the update bot; the
 # trust-policy approval only waives npm's young-package heuristics.
 # The pin is the train's to write, never the update bot's (§ 1 PLX-Updates).
-"npm:@plexus-ms/cli" = { version = "0.108.0", allow_low_downloads = true }
+"npm:@plexus-ms/cli" = { version = "0.109.0", allow_low_downloads = true }
 {%- if ci_strategy == 'cloud' %}
 # plx-ci: the sweep of the cloud strategy (§ 8 PLX-Delivery), the same package
 # family at the same train number.
-"npm:@plexus-ms/cli-ci" = { version = "0.108.0", allow_low_downloads = true }
+"npm:@plexus-ms/cli-ci" = { version = "0.109.0", allow_low_downloads = true }
 {%- endif %}
 
 [hooks]
