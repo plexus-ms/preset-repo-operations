@@ -29,6 +29,7 @@ jobs:
     with:
       runner: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
       dry-run: ${{ inputs.dry_run || false }}
+      alerts-email: '{% endraw %}{{ alerts_email }}{% raw %}'
     secrets:
       op-service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 {% endraw %}

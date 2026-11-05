@@ -28,7 +28,9 @@ copier = { version = "latest", uvx = true } # template management
 
 [hooks]
 # Wire up Git hooks
-postinstall = "hk install --mise"
+# On a CI runner whose mise installs only the tools a job names, hk is absent
+# and the hook is not needed; it stays silent instead of failing.
+postinstall = "if command -v hk >/dev/null; then hk install --mise; fi"
 
 
 # Platform verbs (PLX-Platform) — the two playbooks, split by change cadence.

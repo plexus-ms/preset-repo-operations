@@ -20,6 +20,20 @@ infrastructure:
   help: "Does this tenant build its own infrastructure layer (Proxmox hypervisor, backup server, ingress VM) instead of buying hosts from a provider?"
   default: false
 
+ci_strategy:
+  type: str
+  help: "Which CI strategy the tenant's app repos run (§ 8 PLX-Delivery): forge, nothing to mount here; cloud, throwaway cloud instances, whose daily sweep this repo mounts with the CI vault's service account token"
+  choices:
+    - forge
+    - cloud
+  default: forge
+
+alerts_email:
+  type: str
+  help: "Cloud strategy: the address the sweep mails when it removes something (empty: no mail); a fact, so an answer here and never a vault item"
+  default: ""
+  when: "{{ ci_strategy == 'cloud' }}"
+
 renovate_reviewers:
   type: str
   help: "GitHub logins the update bot requests a review from on the PRs that wait for a human, comma-separated (empty: none); a PR the bot merges itself asks nobody unless its checks fail"
