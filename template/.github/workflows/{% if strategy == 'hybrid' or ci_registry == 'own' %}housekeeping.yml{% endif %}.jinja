@@ -1,0 +1,40 @@
+{% raw %}name: housekeeping
+
+# The daily housekeeping of the tenant's CI (§ 8 PLX-Delivery), once a day
+# and on demand. Under the hybrid strategy, the last layer under the
+# throwaway instances: every one that is stopped or past its death deadline
+# is deleted and the alerts address mailed; one kept after a missed boot is
+# spared, mailed about again after seven days and deleted after fourteen.
+# With a registry of the tenant's own, the month's buckets: this month's
+# exists, the one from two months ago goes. The instances and the buckets
+# belong to the tenant, not to one app repo, which is why this lives here.
+# The logic is plx-ci's (@plexus-ms/cli-ci, pinned in mise.toml); the one
+# secret is the CI vault's service account token, OP_SERVICE_ACCOUNT_TOKEN.
+# Managed by copier: edit the preset (plexus-ms/preset-repo-platform), never
+# this file.
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only list what would be deleted
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  housekeeping:
+    uses: plexus-ms/primitives/.github/workflows/_housekeeping.yml@0.110.0
+    with:
+      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ strategy }}{% raw %}' }}
+      registry: {% endraw %}{{ 'own' if ci_registry == 'own' else 'none' }}{% raw %}
+      dry-run: ${{ inputs.dry_run || false }}
+      alerts-email: '{% endraw %}{{ alerts_email }}{% raw %}'
+    secrets:
+      op-service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+{% endraw %}

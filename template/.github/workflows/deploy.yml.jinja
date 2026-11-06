@@ -3,52 +3,56 @@
 # Mounts the deploy verb for the third-party apps hosted in this platform repo
 # (§ 2 PLX-App, §§ 3 and 6 PLX-Delivery): software the tenant merely operates,
 # declared as apps/<name>/{docker/compose.yaml, PLEXUS.md} with the image
-# pinned in compose.yaml. On push to main, `changed-apps` emits exactly the
-# apps whose files changed (a plain path diff — no workspace here) and
-# `deploy` fans the verb over them. Nothing is released: the image is someone
-# else's. Managed by copier: edit the preset (plexus-ms/preset-repo-platform),
-# never this file.
+# pinned in compose.yaml. On a push to main that touches apps/, and on
+# demand, every app under apps/ is deployed where the inventory places it;
+# the verb ends at once where the host already serves the app's file, so
+# only a changed app restarts. An app without a `plexus_deploy_target` in
+# the inventory file that declares it has no deployment, and is named in the
+# log. Nothing is published: the image is someone else's. Managed by copier:
+# edit the preset (plexus-ms/preset-repo-platform), never this file.
+#
+# One secret, OP_SERVICE_ACCOUNT_TOKEN, the CI vault's service account token:
+# the deploy key is read from the vault <owner>-ci (§ 3 PLX-Secrets).
 #
 # The playbooks (provision.yml, configure.yml) are NOT mounted on CI — they
 # run as root and are applied by an operator: `mise provision`, `mise configure`.
+#
+# Where the jobs run is this repo's answer `ci_strategy` (§ 8 PLX-Delivery):
+# {% endraw %}{{ strategy }}{% raw %}. The repo variable CI_STRATEGY overrides it without a commit;
+# `github` there is the way back to the forge's runners while a runner host
+# is down.
+# The app hosts are reached by `ci_overlay`: {% endraw %}{{ ci_overlay }}{% raw %}.
 
 on:
   push:
     branches: [main]
     paths: ['apps/**']
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-# Where the jobs run: see verify.yml.
 jobs:
-  changed-apps:
-    uses: plexus-ms/primitives/.github/workflows/_changed-apps.yml@0.110.0
-    with:
-      runner: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
-
-  # Where each app deploys: the plexus_deploy_target of the inventory file
-  # that declares it (§ 3 PLX-Platform); an app without one falls back to the
-  # DEPLOY_HOST variable.
   deploy-targets:
     uses: plexus-ms/primitives/.github/workflows/_deploy-targets.yml@0.110.0
     with:
-      runner: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ strategy }}{% raw %}' }}
 
   deploy:
-    needs: [changed-apps, deploy-targets]
-    # Empty matrix is an error, not a no-op — skip the job when nothing changed.
-    if: ${{ needs.changed-apps.outputs.apps != '[]' }}
+    needs: deploy-targets
+    # Empty matrix is an error, not a no-op — skip the job when no app deploys.
+    if: ${{ needs.deploy-targets.outputs.matrix != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        app: ${{ fromJSON(needs.changed-apps.outputs.apps) }}
+        include: ${{ fromJSON(needs.deploy-targets.outputs.matrix) }}
     uses: plexus-ms/primitives/.github/workflows/_deploy.yml@0.110.0
     with:
+      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ strategy }}{% raw %}' }}
       tenant: {% endraw %}{{ tenant }}{% raw %}
       app: ${{ matrix.app }}
-      host: ${{ fromJSON(needs.deploy-targets.outputs.map)[matrix.app] || vars.DEPLOY_HOST }}
-      runner: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
+      host: ${{ matrix.host }}
+      overlay: {% endraw %}{{ ci_overlay }}{% raw %}
     secrets:
-      ssh-key: ${{ secrets.DEPLOY_SSH_KEY }}
+      op-service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 {% endraw %}

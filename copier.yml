@@ -22,17 +22,41 @@ infrastructure:
 
 ci_strategy:
   type: str
-  help: "Which CI strategy the tenant's app repos run (§ 8 PLX-Delivery): forge, nothing to mount here; cloud, throwaway cloud instances, whose daily sweep this repo mounts with the CI vault's service account token"
+  help: "Where the tenant's CI jobs run (§ 8 PLX-Delivery), the same answer as its app repos': github, the forge's runners; on-prem, container slots on runner hosts of the tenant's own; hybrid, slots for the small and medium jobs and throwaway cloud instances for the large ones, whose daily sweep this repo mounts"
+  default: github
+  validator: "{% if ci_strategy not in ['github', 'on-prem', 'hybrid', 'forge', 'cloud'] %}ci_strategy is github, on-prem or hybrid{% endif %}"
+
+# The strategy the templates act on. Until train 0.110.0 the answers were
+# forge and cloud; an answers file that still says so is read as github and
+# hybrid, since copier re-renders the old template with the stored answer
+# and so cannot be handed a value the old template did not know. Never asked,
+# never stored. The legacy values go once no consumer is below 0.111.0.
+strategy:
+  type: str
+  default: "{{ {'forge': 'github', 'cloud': 'hybrid'}.get(ci_strategy, ci_strategy) }}"
+  when: false
+
+ci_registry:
+  type: str
+  help: "Where the app repos' runs keep the images they build and test (§ 8 PLX-Delivery): ghcr, the forge's registry, nothing to mount here; own, a registry on the tenant's object storage, whose monthly buckets this repo rotates"
   choices:
-    - forge
-    - cloud
-  default: forge
+    - ghcr
+    - own
+  default: "{{ 'ghcr' if strategy == 'github' else 'own' }}"
+
+ci_overlay:
+  type: str
+  help: "How a deploy of a third-party app reaches its host (§ 8 PLX-Delivery): none, as the inventory names it; netbird, over the tenant's overlay, which a job on the forge's runners joins for its length"
+  choices:
+    - none
+    - netbird
+  default: none
 
 alerts_email:
   type: str
-  help: "Cloud strategy: the address the sweep mails when it removes something (empty: no mail); a fact, so an answer here and never a vault item"
+  help: "Hybrid strategy: the address the daily sweep mails when it removes an instance or a kept one is still there (empty: no mail); a fact, so an answer here and never a vault item"
   default: ""
-  when: "{{ ci_strategy == 'cloud' }}"
+  when: "{{ strategy == 'hybrid' }}"
 
 renovate_reviewers:
   type: str

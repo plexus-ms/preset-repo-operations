@@ -14,15 +14,15 @@ hk = "latest" # Git hooks
 uv = "latest" # required for ansible and copier
 ansible = { version = "latest", uvx = true } # configuration management
 copier = { version = "latest", uvx = true } # template management
-# plx: the ops verbs the reusable workflows mount — changed-apps, deploy-targets, deploy
-# (§ 3 PLX-Delivery). The initiative's own package, published from
+# plx: the ops verbs the reusable workflows mount — deploy-targets, deploy
+# (§ 6 PLX-Delivery). The initiative's own package, published from
 # plexus-ms/primitives with provenance and bumped by the update bot; the
 # trust-policy approval only waives npm's young-package heuristics.
 # The pin is the train's to write, never the update bot's (§ 1 PLX-Updates).
 "npm:@plexus-ms/cli" = { version = "0.110.0", allow_low_downloads = true }
-{%- if ci_strategy == 'cloud' %}
-# plx-ci: the sweep of the cloud strategy (§ 8 PLX-Delivery), the same package
-# family at the same train number.
+{%- if strategy == 'hybrid' or ci_registry == 'own' %}
+# plx-ci: the daily housekeeping of the tenant's CI (§ 8 PLX-Delivery), the
+# same package family at the same train number.
 "npm:@plexus-ms/cli-ci" = { version = "0.110.0", allow_low_downloads = true }
 {%- endif %}
 
