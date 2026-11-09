@@ -18,7 +18,7 @@
 # run as root and are applied by an operator: `mise provision`, `mise configure`.
 #
 # Where the jobs run is this repo's answer `ci_strategy` (§ 8 PLX-Delivery):
-# {% endraw %}{{ strategy }}{% raw %}. The repo variable CI_STRATEGY overrides it without a commit;
+# {% endraw %}{{ ci_strategy }}{% raw %}. The repo variable CI_STRATEGY overrides it without a commit;
 # `github` there is the way back to the forge's runners while a runner host
 # is down.
 # The app hosts are reached by `ci_overlay`: {% endraw %}{{ ci_overlay }}{% raw %}.
@@ -36,7 +36,7 @@ jobs:
   deploy-targets:
     uses: plexus-ms/primitives/.github/workflows/_deploy-targets.yml@0.113.0
     with:
-      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ strategy }}{% raw %}' }}
+      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ ci_strategy }}{% raw %}' }}
 
   deploy:
     needs: deploy-targets
@@ -48,7 +48,7 @@ jobs:
         include: ${{ fromJSON(needs.deploy-targets.outputs.matrix) }}
     uses: plexus-ms/primitives/.github/workflows/_deploy.yml@0.113.0
     with:
-      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ strategy }}{% raw %}' }}
+      strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ ci_strategy }}{% raw %}' }}
       tenant: {% endraw %}{{ tenant }}{% raw %}
       app: ${{ matrix.app }}
       host: ${{ matrix.host }}
