@@ -10,6 +10,10 @@ monorepo_root = true
 config_roots = ["."]
 
 [tools]
+# node: the runtime of plx and plx-ci below and nothing else (the repo has no
+# Node toolchain); pinned like every tool, since the tools' own pin says
+# nothing about the runtime they run on, and bumped by the update bot.
+node = "24"
 hk = "latest" # Git hooks
 uv = "latest" # required for ansible and copier
 ansible = { version = "latest", uvx = true } # configuration management
