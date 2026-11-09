@@ -1,6 +1,8 @@
-# The tenant's platform repo (§ 3 PLX-Tenancy): the ops side, applied by playbook
-# runs on its own occasions — it has no release cycle (§ 3 PLX-Delivery). Third-party
-# apps the tenant merely operates live under apps/<name>/ (§ 2 PLX-App).
+# The tenant's operations repo (§ 3 PLX-Tenancy): the ops side, applied by
+# playbook runs on its own occasions — it has no release cycle (§ 3 PLX-Delivery).
+# One playbook per layer, each shipped in its plexus.* collection and mounted
+# here (platform.yml{% if infrastructure %}, infrastructure.yml{% endif %}{% if ci_strategy != 'github' %}, ci.yml{% endif %}); third-party apps the tenant
+# merely operates live under apps/<name>/ (§ 2 PLX-App).
 
 # Verbs are asked as `mise :verb` at the repo root like in every tenant repo
 # (§ 2 PLX-Repo); that form needs the root marker even without sub-projects.
@@ -37,50 +39,56 @@ copier = { version = "latest", uvx = true } # template management
 postinstall = "if command -v hk >/dev/null; then hk install --mise; fi"
 
 
-# Platform verbs (PLX-Platform) — the two playbooks, split by change cadence.
+# Layer verbs — one playbook per layer, arguments passed through to
+# ansible-playbook after `--`: `mise platform -- --tags apps --limit vm101`.
 
-[tasks.provision]
+[tasks.platform]
 depends = ["collections"]
-description = "Base host setup: apt, hardening, docker, caddy (fresh hosts and deep-reaching changes)"
-run = './ansible-playbookw provision.yml'
+description = "The platform layer on the app hosts (PLX-Platform): host baseline, deploy user, ingress, secrets, apps; --tags for a part"
+run = './ansible-playbookw platform.yml'
 
-[tasks.configure]
-depends = ["collections"]
-description = "Everyday pass: ingress routes, app dirs, .env, .env.secret, container re-creation"
-run = './ansible-playbookw configure.yml'
-
-{% if infrastructure %}
+{% if infrastructure -%}
 [tasks.infrastructure]
 depends = ["collections"]
-description = "The infrastructure layer under the platform hosts: hypervisor, backup server, ingress VM"
+description = "The infrastructure layer under the hosts (PLX-Infrastructure): hypervisor, guests, backup server, ingress VM; --tags for a part"
 run = './ansible-playbookw infrastructure.yml'
-{% endif %}
+
+{% endif -%}
+{% if ci_strategy != 'github' -%}
+[tasks.ci]
+depends = ["collections"]
+description = "The tenant's CI capacity (§ 8 PLX-Delivery): the runner host and its slots; --tags for a part"
+run = './ansible-playbookw ci.yml'
+
+{% endif -%}
 
 # Contract verbs (§ 3 PLX-Repo) — every tenant repo answers them; the ones a
-# platform repo has no use for exist and pass as documented no-ops.
+# operations repo has no use for exist and pass as documented no-ops.
 
 [tasks.dev]
-description = "No-op: a platform repo has no development environment to start"
-run = 'echo "dev: nothing to start in a platform repo"'
+description = "No-op: an operations repo has no development environment to start"
+run = 'echo "dev: nothing to start in an operations repo"'
 
 [tasks.build]
-description = "No-op: a platform repo produces no artifact; third-party apps pin published images"
-run = 'echo "build: nothing to build in a platform repo"'
+description = "No-op: an operations repo produces no artifact; third-party apps pin published images"
+run = 'echo "build: nothing to build in an operations repo"'
 
 [tasks.check]
 depends = ["collections"]
-description = "Static checks: playbook syntax against the pinned collection"
+description = "Static checks: playbook syntax against the pinned collections"
 run = [
-    'ansible-playbook --syntax-check provision.yml',
-    'ansible-playbook --syntax-check configure.yml',
+    'ansible-playbook --syntax-check platform.yml',
 {%- if infrastructure %}
     'ansible-playbook --syntax-check infrastructure.yml',
+{%- endif %}
+{%- if ci_strategy != 'github' %}
+    'ansible-playbook --syntax-check ci.yml',
 {%- endif %}
 ]
 
 [tasks.test]
-description = "No-op: a platform repo has no tests that gate a deploy"
-run = 'echo "test: nothing to test in a platform repo"'
+description = "No-op: an operations repo has no tests that gate a deploy"
+run = 'echo "test: nothing to test in an operations repo"'
 
 [tasks.verify]
 description = "Perform all steps that verify code quality"
@@ -96,7 +104,7 @@ run = "copier update --trust"
 # Internal / hidden tasks
 
 [tasks.collections]
-description = "Install the pinned plexus.platform collection"
+description = "Install the pinned plexus.* collections"
 hide = true
 run = 'ansible-galaxy collection install -r requirements.yml'
 sources = ["requirements.yml"]

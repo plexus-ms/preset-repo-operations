@@ -1,6 +1,6 @@
 {% raw %}name: deploy
 
-# Mounts the deploy verb for the third-party apps hosted in this platform repo
+# Mounts the deploy verb for the third-party apps hosted in this operations repo
 # (§ 2 PLX-App, §§ 3 and 6 PLX-Delivery): software the tenant merely operates,
 # declared as apps/<name>/{docker/compose.yaml, PLEXUS.md} with the image
 # pinned in compose.yaml. On a push to main that touches apps/, and on
@@ -9,13 +9,13 @@
 # only a changed app restarts. An app without a `plexus_deploy_target` in
 # the inventory file that declares it has no deployment, and is named in the
 # log. Nothing is published: the image is someone else's. Managed by copier:
-# edit the preset (plexus-ms/preset-repo-platform), never this file.
+# edit the preset (plexus-ms/preset-repo-operations), never this file.
 #
 # One secret, OP_SERVICE_ACCOUNT_TOKEN, the CI vault's service account token:
 # the deploy key is read from the vault <owner>-ci (§ 3 PLX-Secrets).
 #
-# The playbooks (provision.yml, configure.yml) are NOT mounted on CI — they
-# run as root and are applied by an operator: `mise provision`, `mise configure`.
+# The playbooks (platform.yml and the other layers') are NOT mounted on CI —
+# they run as root and are applied by an operator: `mise platform`.
 #
 # Where the jobs run is this repo's answer `ci_strategy` (§ 8 PLX-Delivery):
 # {% endraw %}{{ ci_strategy }}{% raw %}. The repo variable CI_STRATEGY overrides it without a commit;
@@ -49,7 +49,6 @@ jobs:
     uses: plexus-ms/primitives/.github/workflows/_deploy.yml@0.113.0
     with:
       strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ ci_strategy }}{% raw %}' }}
-      tenant: {% endraw %}{{ tenant }}{% raw %}
       app: ${{ matrix.app }}
       host: ${{ matrix.host }}
       overlay: {% endraw %}{{ ci_overlay }}{% raw %}

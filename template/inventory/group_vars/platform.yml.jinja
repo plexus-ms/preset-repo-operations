@@ -1,10 +1,11 @@
-plexus_tenant: {{ tenant }}
+# The hosts that run this tenant's apps (PLX-Platform). The apps themselves
+# are per host (host_vars/<host>.yml, plexus_apps).
 
 # Unprivileged user that owns app dirs and runs the deploy verb (via CI SSH).
 plexus_deploy_user: plexus
 plexus_deploy_root: /opt/stacks
 
-# Re-create containers during a configure-playbook run (rotation — PLX-Secrets)
+# Re-create containers during a platform-playbook run (rotation — PLX-Secrets)
 # and pull + start apps whose compose file the deploy verb has already placed.
 # Safe to leave true: an app never deployed yet is skipped, not fatal.
 plexus_up: true
@@ -21,7 +22,9 @@ plexus_up: true
 # the deploy-targets reader binds a record to the target of the same file.
 # The app's run shape (compose.yaml) is NOT here: it lives in the app's source
 # repo and the deploy verb renders it onto the host (§ 2 PLX-App).
-# App names are unique per tenant across every repo.
+# App names are unique per tenant across every repo; a record may carry an
+# `environment` (production when absent), and the same app may have one
+# record per environment (PLX-Environment).
 #
 #   - name: my-app                          # unique per tenant
 #     repo: {{ github_org }}/web            # source repo (informative — where the app's code lives)
@@ -30,28 +33,16 @@ plexus_up: true
 #     env:                                  # non-secret values → .env
 #       PUBLIC_URL: https://my-app.example.org
 #     secrets:                              # op:// pointers → .env.secret (0600), resolved from the vault
-#       DATABASE_URL: op://{{ tenant }}/my-app-db/url
+#       DATABASE_URL: op://{{ tenant }}/my-app/production/database-url
 #
 #   - name: uptime                          # a third-party app: source repo is THIS repo, apps/uptime/
-#     repo: {{ github_org }}/platform
+#     repo: {{ github_org }}/operations
 #     host: ops.example.org
 #     path: /uptime                         # optional: served under ops.example.org/uptime/, prefix stripped;
 #                                           # apps sharing a host differ by path, at most one serves its root
 #     loopback_port: 3001
 #     healthz: /api/status-page/heartbeat   # mirrors the app's plexus.healthz label, so the proxy fences it (§ 5 PLX-App)
 plexus_apps: []
-
-# Human admins: a personal account on every host, key-only SSH, passwordless
-# sudo (configure_iam). At least one is required: after a first run as root,
-# connect as an admin, and root logins close (configure_sshd).
-#   - name: alice
-#     ssh_keys: ["ssh-ed25519 AAAA… alice@example.org"]
-configure_iam_admins: []
-
-# Host firewall (configure_firewall): inbound closed except SSH and what the
-# roles open themselves (install_caddy: 80, 443). List an overlay network's
-# interface here to accept its traffic whole, e.g. [wt0] for NetBird.
-configure_firewall_trusted_interfaces: []
 
 # Secrets
 plexus_deploy_pubkey: "{% raw %}{{ lookup('env', 'DEPLOY_PUBKEY') | default('', true) }}{% endraw %}"

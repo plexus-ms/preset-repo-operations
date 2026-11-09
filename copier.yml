@@ -17,12 +17,12 @@ github_org:
 
 infrastructure:
   type: bool
-  help: "Does this tenant build its own infrastructure layer (Proxmox hypervisor, backup server, ingress VM) instead of buying hosts from a provider?"
+  help: "Does this tenant build its own infrastructure layer (Proxmox hypervisor, backup server, ingress VM) instead of buying hosts from a provider? Adds infrastructure.yml, the mount of plexus.infrastructure.playbook"
   default: false
 
 ci_strategy:
   type: str
-  help: "Where the tenant's CI jobs run (§ 8 PLX-Delivery), the same answer as its app repos': github, the forge's runners; on-prem, container slots on runner hosts of the tenant's own; hybrid, slots for the small and medium jobs and throwaway cloud instances for the large ones, whose daily sweep this repo mounts"
+  help: "Where the tenant's CI jobs run (§ 8 PLX-Delivery), the same answer as its app repos': github, the forge's runners; on-prem, container slots on runner hosts of the tenant's own; hybrid, slots for the small and medium jobs and throwaway cloud instances for the large ones, whose daily sweep this repo mounts; on-prem and hybrid add ci.yml, the mount of plexus.ci.playbook for the runner host"
   default: github
   choices:
     - github

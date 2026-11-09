@@ -1,5 +1,24 @@
-all:
-  children:
-    {{ tenant }}:
-      hosts:
-        host01.{{ tenant }}.example:
+# The inventory groups are the ones the shipped playbooks target (§ 1
+# PLX-Platform): `platform` for the hosts that run this tenant's apps{% if ci_strategy != 'github' %}, `ci`
+# for the runner host{% endif %}{% if infrastructure %}, and `proxmox`, `pbs`, `haproxy` and `guests` for the
+# infrastructure layer (PLX-Infrastructure){% endif %}. A host's own facts go to
+# host_vars/<host>.yml, a group's to group_vars/<group>.yml.
+platform:
+  hosts:
+    host01.{{ tenant }}.example:
+{%- if ci_strategy != 'github' %}
+
+ci: # the runner host (§ 8 PLX-Delivery): container slots, no apps, no ingress
+  hosts: {}
+{%- endif %}
+{%- if infrastructure %}
+
+proxmox: # the hypervisor
+  hosts: {}
+pbs: # Proxmox Backup Server, the hypervisor's backup target
+  hosts: {}
+haproxy: # the ingress VM: one public address, routed by SNI/Host to the tenant VMs
+  hosts: {}
+guests: # every VM on the hypervisor, the ingress VM and other tenants' guests included
+  hosts: {}
+{%- endif %}

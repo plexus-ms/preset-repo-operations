@@ -1,4 +1,16 @@
+# The plexus.* collections, one version, the train's (§ 1.5 PLX); the train's
+# pull request moves the pins, a PR a human reads before anything new runs as
+# root (PLX-Updates). plexus.host carries the baseline the other three mount.
 collections:
-  - name: https://github.com/plexus-ms/primitives.git#/ansible/
+  - name: https://github.com/plexus-ms/primitives.git#/ansible/host/
+    type: git
+    version: 0.113.0
+  - name: https://github.com/plexus-ms/primitives.git#/ansible/platform/
+    type: git
+    version: 0.113.0
+  - name: https://github.com/plexus-ms/primitives.git#/ansible/infrastructure/
+    type: git
+    version: 0.113.0
+  - name: https://github.com/plexus-ms/primitives.git#/ansible/ci/
     type: git
     version: 0.113.0
