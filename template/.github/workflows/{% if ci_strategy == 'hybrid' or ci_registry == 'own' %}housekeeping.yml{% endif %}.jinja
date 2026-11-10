@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   housekeeping:
-    uses: plexus-ms/primitives/.github/workflows/_housekeeping.yml@0.114.0
+    uses: plexus-ms/primitives/.github/workflows/_housekeeping.yml@0.115.0
     with:
       strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ ci_strategy }}{% raw %}' }}
       registry: {% endraw %}{{ 'own' if ci_registry == 'own' else 'none' }}{% raw %}
