@@ -4,13 +4,13 @@
 collections:
   - name: https://github.com/plexus-ms/primitives.git#/ansible/host/
     type: git
-    version: 0.118.0
+    version: 0.119.0
   - name: https://github.com/plexus-ms/primitives.git#/ansible/platform/
     type: git
-    version: 0.118.0
+    version: 0.119.0
   - name: https://github.com/plexus-ms/primitives.git#/ansible/infrastructure/
     type: git
-    version: 0.118.0
+    version: 0.119.0
   - name: https://github.com/plexus-ms/primitives.git#/ansible/ci/
     type: git
-    version: 0.118.0
+    version: 0.119.0
