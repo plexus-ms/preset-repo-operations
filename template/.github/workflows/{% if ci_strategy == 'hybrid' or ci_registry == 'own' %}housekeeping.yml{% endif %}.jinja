@@ -10,7 +10,7 @@
 # belong to the tenant, not to one app repo, which is why this lives here.
 # The logic is plx-ci's (@plexus-ms/cli-ci, pinned in mise.toml); the one
 # secret is the CI vault's service account token, OP_SERVICE_ACCOUNT_TOKEN.
-# Managed by copier: edit the preset (plexus-ms/preset-repo-operations), never
+# Managed by copier: edit the template (plexus-ms/template-repo-operations), never
 # this file.
 
 on:
@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   housekeeping:
-    uses: plexus-ms/primitives/.github/workflows/_housekeeping.yml@0.119.0
+    uses: plexus-ms/tooling/.github/workflows/_housekeeping.yml@0.119.0
     with:
       strategy: ${{ vars.CI_STRATEGY || '{% endraw %}{{ ci_strategy }}{% raw %}' }}
       registry: {% endraw %}{{ 'own' if ci_registry == 'own' else 'none' }}{% raw %}

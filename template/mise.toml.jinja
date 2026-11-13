@@ -22,13 +22,13 @@ ansible = { version = "latest", uvx = true } # configuration management
 copier = { version = "latest", uvx = true } # template management
 # plx: the ops verbs the reusable workflows mount — deploy-targets, deploy
 # (§ 6 PLX-Delivery). The initiative's own package, published from
-# plexus-ms/primitives with provenance and bumped by the update bot; the
+# plexus-ms/tooling at the Plexus version, with provenance; the
 # trust-policy approval only waives npm's young-package heuristics.
-# The pin is the train's to write, never the update bot's (§ 1 PLX-Updates).
+# The pin is written with each version, never by the update bot (§ 1 PLX-Updates).
 "npm:@plexus-ms/cli" = { version = "0.119.0", allow_low_downloads = true }
 {%- if ci_strategy == 'hybrid' or ci_registry == 'own' %}
 # plx-ci: the daily housekeeping of the tenant's CI (§ 8 PLX-Delivery), the
-# same package family at the same train number.
+# same package family at the same Plexus version.
 "npm:@plexus-ms/cli-ci" = { version = "0.119.0", allow_low_downloads = true }
 {%- endif %}
 
